@@ -47,6 +47,7 @@ export const useAuthStore = () => {
         try {
             const { data } = await spaApi.post("/auth/register", values);
             localStorage.setItem("token", data.token);
+            dispatch(logout());
             navigate("/auth/login");
             return { resp: true, data };
         } catch (error) {
@@ -74,6 +75,7 @@ export const useAuthStore = () => {
             return true;
         } catch (error) {
             localStorage.removeItem('token');
+            console.log(error);
             dispatch(logout());
             return false;
         }

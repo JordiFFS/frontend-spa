@@ -1,7 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 import { useAuthStore } from "../hooks"
-import { LoginPages } from "../auth";
+import { AuthRoutes } from "../auth";
 import { ModuleRoutes } from "../modules";
+import { CheckingAuth } from "../ui";
 
 export const AppRoutes = () => {
 
@@ -12,7 +13,7 @@ export const AppRoutes = () => {
 
     console.log(user.rol, status);
 
-    if (status === 'checking') return <div>Loading...</div>;
+    if (status === 'checking') return <CheckingAuth msg="Validando credenciales ..." />;
 
     return (
         <Routes>
@@ -24,7 +25,7 @@ export const AppRoutes = () => {
                     </>
                 ) : (
                     <>
-                        <Route path="/auth/*" element={<LoginPages />} />
+                        <Route path="/auth/*" element={<AuthRoutes />} />
                         <Route path="/*" element={<Navigate to="/auth/login" />} />
                     </>
                 )}

@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link as RouterLink } from 'react-router-dom';
 import { useAuthStore } from "../../hooks"
 import { AuthLayout } from "../layout";
-import login from '/img/foto6.webp';
-import logo from '/img/logo.jpg'; // Agrega tu logo aquí
+import register from '/img/foto6.webp'; // Usa la misma imagen o cambia por una específica
+import logo from '/img/logo.jpg';
 import {
     Alert,
     Box,
@@ -15,59 +15,63 @@ import {
     Typography,
     Paper,
     Divider,
+    MenuItem,
 } from '@mui/material';
-import { Visibility, VisibilityOff, Person, Lock } from '@mui/icons-material';
+import {
+    Visibility,
+    VisibilityOff,
+    Person,
+    Lock,
+    Email,
+    Phone,
+    AccountCircle
+} from '@mui/icons-material';
 import { Field, Form, Formik } from "formik";
 import * as Yup from 'yup';
 
-export const LoginPages = () => {
+export const RegisterPages = () => {
     const {
         status,
         errorMessage,
-        startLogin,
+        startRegister,
+        startClearErrorMessage,
     } = useAuthStore();
 
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
+    const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show);
 
     const isAuthenticating = useMemo(() => status === 'checking', [status]);
 
-    const onLogin = async (values) => {
-        const result = await startLogin({
-            email: values.email.trim(),
-            password: values.password.trim()
+    const onRegister = async (values) => {
+        // Eliminamos confirmPassword antes de enviar al servidor
+        const { confirmPassword, ...registerData } = values;
+
+        console.log(confirmPassword);
+
+        const result = await startRegister({
+            nombre: registerData.nombre.trim(),
+            email: registerData.email.trim(),
+            password: registerData.password.trim(),
+            telefono: registerData.telefono.trim(),
+            rol: registerData.rol
         });
 
-        console.log('🔄 Resultado del login:', result);
+        console.log('🔄 Resultado del registro:', result);
     };
 
+    useEffect(() => {
+        startClearErrorMessage();
+    }, [])
+
     return (
-        <AuthLayout title="Iniciar Sesión" imgSrc={login}>
-            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <AuthLayout title="Crear Cuenta" imgSrc={register}>
+            <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
                 {/* LOGO */}
-                <Box sx={{ mb: 3, textAlign: 'center' }}>
-                    <img
-                        src={logo}
-                        alt="Logo"
-                        style={{
-                            height: '80px',
-                            width: 'auto',
-                            marginBottom: '16px'
-                        }}
-                    />
-                    <Typography
-                        variant="h4"
-                        component="h1"
-                        sx={{
-                            color: '#4a6572',
-                            fontWeight: 'bold',
-                            mb: 1
-                        }}
-                    >
-                        Bienvenido
-                    </Typography>
+                <Box sx={{ mb: 1, textAlign: 'center' }}>
                     <Typography
                         variant="body2"
                         sx={{
@@ -75,7 +79,7 @@ export const LoginPages = () => {
                             mb: 2
                         }}
                     >
-                        Accede a tu cuenta para continuar
+                        Completa tus datos para registrarte
                     </Typography>
                 </Box>
 
@@ -84,7 +88,7 @@ export const LoginPages = () => {
                     sx={{
                         p: 4,
                         width: '100%',
-                        maxWidth: '400px',
+                        maxWidth: '450px',
                         borderRadius: 3,
                         background: 'rgba(255, 255, 255, 0.95)',
                         backdropFilter: 'blur(10px)'
@@ -92,12 +96,16 @@ export const LoginPages = () => {
                 >
                     <Formik
                         initialValues={{
+                            nombre: '',
                             email: '',
                             password: '',
+                            confirmPassword: '',
+                            telefono: '',
+                            rol: 'cliente',
                         }}
                         validationSchema={validationSchema}
                         onSubmit={(values, { setSubmitting }) => {
-                            onLogin(values).finally(() => {
+                            onRegister(values).finally(() => {
                                 setSubmitting(false);
                             });
                         }}
@@ -105,19 +113,19 @@ export const LoginPages = () => {
                         {({ errors, touched, isSubmitting }) => (
                             <Form>
 
-                                {/* EMAIL */}
+                                {/* NOMBRE */}
                                 <Box sx={{ mb: 3 }}>
                                     <Field
                                         as={TextField}
-                                        autoComplete="email"
-                                        type="email"
+                                        autoComplete="name"
+                                        type="text"
                                         fullWidth
                                         variant="outlined"
-                                        label="Correo Electrónico"
-                                        placeholder="ejemplo@correo.com"
-                                        name="email"
-                                        error={errors.email && touched.email}
-                                        helperText={errors.email && touched.email && errors.email}
+                                        label="Nombre Completo"
+                                        placeholder="Juan Pérez"
+                                        name="nombre"
+                                        error={errors.nombre && touched.nombre}
+                                        helperText={errors.nombre && touched.nombre && errors.nombre}
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">
@@ -139,6 +147,75 @@ export const LoginPages = () => {
                                     />
                                 </Box>
 
+                                {/* EMAIL */}
+                                <Box sx={{ mb: 3 }}>
+                                    <Field
+                                        as={TextField}
+                                        autoComplete="email"
+                                        type="email"
+                                        fullWidth
+                                        variant="outlined"
+                                        label="Correo Electrónico"
+                                        placeholder="ejemplo@correo.com"
+                                        name="email"
+                                        error={errors.email && touched.email}
+                                        helperText={errors.email && touched.email && errors.email}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <Email sx={{ color: '#4a6572' }} />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 2,
+                                                '&:hover fieldset': {
+                                                    borderColor: '#4a6572',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#4a6572',
+                                                },
+                                            },
+                                        }}
+                                    />
+                                </Box>
+
+                                {/* TELÉFONO */}
+                                <Box sx={{ mb: 3 }}>
+                                    <Field
+                                        as={TextField}
+                                        autoComplete="tel"
+                                        type="tel"
+                                        fullWidth
+                                        variant="outlined"
+                                        label="Teléfono (Opcional)"
+                                        placeholder="0987654321"
+                                        name="telefono"
+                                        error={errors.telefono && touched.telefono}
+                                        helperText={errors.telefono && touched.telefono && errors.telefono}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <Phone sx={{ color: '#4a6572' }} />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 2,
+                                                '&:hover fieldset': {
+                                                    borderColor: '#4a6572',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#4a6572',
+                                                },
+                                            },
+                                        }}
+                                    />
+                                </Box>
+
+
                                 {/* PASSWORD */}
                                 <Box sx={{ mb: 3 }}>
                                     <Field
@@ -147,9 +224,9 @@ export const LoginPages = () => {
                                         variant="outlined"
                                         type={showPassword ? 'text' : 'password'}
                                         label="Contraseña"
-                                        placeholder="Ingrese su contraseña"
+                                        placeholder="Mínimo 8 caracteres"
                                         name="password"
-                                        autoComplete="current-password"
+                                        autoComplete="new-password"
                                         error={errors.password && touched.password}
                                         helperText={errors.password && touched.password && errors.password}
                                         InputProps={{
@@ -167,6 +244,52 @@ export const LoginPages = () => {
                                                         sx={{ color: '#4a6572' }}
                                                     >
                                                         {showPassword ? <VisibilityOff /> : <Visibility />}
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 2,
+                                                '&:hover fieldset': {
+                                                    borderColor: '#4a6572',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#4a6572',
+                                                },
+                                            },
+                                        }}
+                                    />
+                                </Box>
+
+                                {/* CONFIRM PASSWORD */}
+                                <Box sx={{ mb: 3 }}>
+                                    <Field
+                                        as={TextField}
+                                        fullWidth
+                                        variant="outlined"
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        label="Confirmar Contraseña"
+                                        placeholder="Repite tu contraseña"
+                                        name="confirmPassword"
+                                        autoComplete="new-password"
+                                        error={errors.confirmPassword && touched.confirmPassword}
+                                        helperText={errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <Lock sx={{ color: '#4a6572' }} />
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        aria-label="toggle confirm password visibility"
+                                                        onClick={handleClickShowConfirmPassword}
+                                                        edge="end"
+                                                        sx={{ color: '#4a6572' }}
+                                                    >
+                                                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                                                     </IconButton>
                                                 </InputAdornment>
                                             ),
@@ -203,7 +326,7 @@ export const LoginPages = () => {
                                     </Box>
                                 )}
 
-                                {/* LOGIN BUTTON */}
+                                {/* REGISTER BUTTON */}
                                 <Button
                                     disabled={isAuthenticating || isSubmitting}
                                     type="submit"
@@ -231,20 +354,20 @@ export const LoginPages = () => {
                                         transition: 'all 0.3s ease',
                                     }}
                                 >
-                                    {isAuthenticating ? 'Ingresando...' : 'Iniciar Sesión'}
+                                    {isAuthenticating ? 'Registrando...' : 'Crear Cuenta'}
                                 </Button>
 
                                 {/* DIVIDER */}
                                 <Divider sx={{ my: 2, color: 'text.secondary' }}>
                                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                        ¿No tienes cuenta?
+                                        ¿Ya tienes cuenta?
                                     </Typography>
                                 </Divider>
 
-                                {/* CREATE ACCOUNT BUTTON */}
+                                {/* LOGIN BUTTON */}
                                 <Button
                                     component={RouterLink}
-                                    to="/auth/register"
+                                    to="/auth/login"
                                     fullWidth
                                     variant="outlined"
                                     size="large"
@@ -265,7 +388,7 @@ export const LoginPages = () => {
                                         transition: 'all 0.3s ease',
                                     }}
                                 >
-                                    Crear Cuenta
+                                    Iniciar Sesión
                                 </Button>
 
                             </Form>
@@ -277,12 +400,32 @@ export const LoginPages = () => {
     )
 }
 
-//Validaciones
+// Validaciones con Yup
 const validationSchema = Yup.object().shape({
+    nombre: Yup.string()
+        .min(2, 'El nombre debe tener al menos 2 caracteres')
+        .max(100, 'El nombre no puede exceder 100 caracteres')
+        .required('Ingrese su nombre completo'),
     email: Yup.string()
         .email('Ingrese un correo electrónico válido')
+        .max(150, 'El correo no puede exceder 150 caracteres')
         .required('Ingrese su correo electrónico'),
     password: Yup.string()
         .min(8, 'La contraseña debe tener al menos 8 caracteres')
+        .max(255, 'La contraseña no puede exceder 255 caracteres')
+        .matches(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+            'La contraseña debe contener al menos una letra minúscula, una mayúscula y un número'
+        )
         .required('Ingrese su contraseña'),
+    confirmPassword: Yup.string()
+        .oneOf([Yup.ref('password'), null], 'Las contraseñas deben coincidir')
+        .required('Confirme su contraseña'),
+    telefono: Yup.string()
+        .max(20, 'El teléfono no puede exceder 20 caracteres')
+        .matches(
+            /^[\d\s\+\-\(\)]*$/,
+            'El teléfono solo puede contener números, espacios, +, -, ( y )'
+        )
+        .nullable(),
 });
